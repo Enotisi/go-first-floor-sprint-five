@@ -96,7 +96,7 @@ type Running struct {
 func (r Running) Calories() float64 {
 	speed := r.meanSpeed()
 	duration := r.Duration.Hours()
-	return (CaloriesMeanSpeedMultiplier * speed * CaloriesMeanSpeedShift) * r.Weight / MInKm * duration * MinInHours
+	return (CaloriesMeanSpeedMultiplier*speed + CaloriesMeanSpeedShift) * r.Weight / MInKm * duration * MinInHours
 }
 
 // TrainingInfo возвращает структуру InfoMessage с информацией о проведенной тренировке.
@@ -115,7 +115,7 @@ const (
 // Walking структура описывающая тренировку Ходьба
 type Walking struct {
 	Training
-	Height float64 // Рост пользователя в метрах
+	Height float64 // Рост пользователя в сантиметрах
 }
 
 // Calories возвращает количество потраченных килокалорий при ходьбе.
@@ -123,7 +123,8 @@ type Walking struct {
 func (w Walking) Calories() float64 {
 	speedMinSec := w.meanSpeed() * KmHInMsec
 	duration := w.Duration.Hours()
-	return (CaloriesWeightMultiplier*w.Weight + (math.Pow(speedMinSec, 2)/w.Height)*CaloriesSpeedHeightMultiplier*w.Weight) * duration * MinInHours
+	height := w.Height / CmInM
+	return (CaloriesWeightMultiplier*w.Weight + (math.Pow(speedMinSec, 2)/height)*CaloriesSpeedHeightMultiplier*w.Weight) * duration * MinInHours
 }
 
 // TrainingInfo возвращает структуру InfoMessage с информацией о проведенной тренировке.
@@ -150,6 +151,10 @@ type Swimming struct {
 // Это переопределенный метод meanSpeed() из Training.
 func (s Swimming) meanSpeed() float64 {
 	duration := s.Duration.Hours()
+	if duration == 0 {
+		return 0
+	}
+
 	return float64(s.LengthPool*s.CountPool) / MInKm / duration
 }
 
